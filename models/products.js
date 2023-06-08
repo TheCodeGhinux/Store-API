@@ -18,6 +18,11 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 4.0
     },
+    tags: {
+      type: [String],
+      // default: 'gadgets, phones, computers',
+      // required: true
+    },
     createdAt:{
       type: Date,
       default: Date.now()

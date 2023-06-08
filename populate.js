@@ -14,7 +14,7 @@ const start = async () => {
   try {
     connectDB()
 
-    // await Product.deleteMany()
+    await Product.deleteMany()
     await Product.create(jsonProducts)
     console.log("Populate connected successfully");
     process.exit(0)
