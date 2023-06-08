@@ -1,16 +1,17 @@
-import Product from '../models/products.js'
+import Product from '../models/products.js';
 
 const getAllProductStatic = async (req, res) => {
-  const products = await Product.find()
+  const products = await Product.find();
   res.status(200).json({ nbHits: products.length, products });
-}
+};
 
 // const getAllProducts = (req, res) => {
 //   res.json({ msg: 'Products route' })
 // }
 
 const getAllProducts = async (req, res) => {
-  const { featured, company, name, sort, fields, tags } = req.query;
+  const { featured, company, name, sort, fields, tags, numericFilters } =
+    req.query;
   const queryObject = {};
 
   if (featured) {
@@ -27,7 +28,30 @@ const getAllProducts = async (req, res) => {
   if (tags) {
     queryObject.tags = { $regex: tags, $options: 'i' };
   }
-  // console.log(queryObject);
+
+  // Numeric Filters for prices, rating e.t.c
+  if (numericFilters) {
+    const filterOperator = {
+      '>': '$gt',
+      '>=': '$gte',
+      '=': '$eq',
+      '<': '$lt',
+      '<=': '$lte',
+    };
+    const regEx = /\b(<|>|>=|=|<=)\b/g;
+    let filters = numericFilters.replace(
+      regEx,
+      (match) => `-${filterOperator[match]}-`
+    );
+    const options = ['price', 'rating']
+    filters = filters.split(',').forEach((item) => {
+      const [fields, operator, value] = item.split('-')
+      if (options.includes(fields)) {
+        queryObject[fields] = { [operator]: Number(value) }
+      }
+    })
+  }
+  console.log(queryObject);
   let result = Product.find(queryObject);
 
   // Sort functionality
@@ -45,14 +69,14 @@ const getAllProducts = async (req, res) => {
   }
 
   // Limit and Pagination functionality
-  const page = Number(req.query.page) || 1
-  const limit = Number(req.query.limit) || 10
-  const skip = (page - 1) * limit
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
-  result = result.skip(skip).limit(limit)
+  result = result.skip(skip).limit(limit);
 
   // console.log(result);
   const products = await result;
   res.status(200).json({ nbHits: products.length, products });
-}
-export {getAllProducts, getAllProductStatic}
+};
+export { getAllProducts, getAllProductStatic };
